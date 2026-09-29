@@ -84,16 +84,62 @@ document.addEventListener("keydown", e => {
   if (e.key === "ArrowRight") show(current + 1);
 });
 
-/* ---------- Contact form: opens the visitor's email app, no server needed ---------- */
-document.getElementById("form").addEventListener("submit", e => {
+/* ---------- Contact form ----------
+   1) Go to https://web3forms.com, enter lallagaragouze@gmail.com, and get a free access key by email.
+   2) Paste that key below. Messages will then arrive straight in your inbox.
+   Until a key is added, the form opens Gmail in a new tab with the message ready to send. */
+const WEB3FORMS_KEY = "3df76e7f-6f14-4756-9e5b-97eb89de28e1";
+const MY_EMAIL = "lallagaragouze@gmail.com";
+const toast = document.getElementById("toast");
+
+function say(text) {
+  toast.textContent = text;
+  toast.classList.add("show");
+  clearTimeout(say.t);
+  say.t = setTimeout(() => toast.classList.remove("show"), 3500);
+}
+
+document.getElementById("form").addEventListener("submit", async e => {
   e.preventDefault();
   const f = e.target;
   const note = document.getElementById("form-note");
   if (!f.checkValidity()) { note.textContent = "Please fill in all fields with a valid email."; return; }
-  const subject = encodeURIComponent("Project enquiry from " + f.name.value);
-  const body = encodeURIComponent(f.message.value + "\n\nFrom: " + f.name.value + " (" + f.email.value + ")");
-  note.textContent = "Opening your email app...";
-  window.location.href = `mailto:lallagaragouze@gmail.com?subject=${subject}&body=${body}`;
+
+  if (!WEB3FORMS_KEY || WEB3FORMS_KEY === "PASTE_YOUR_KEY_HERE") {
+    const su = encodeURIComponent("Project enquiry from " + f.name.value);
+    const body = encodeURIComponent(f.message.value + "\n\nFrom: " + f.name.value + " (" + f.email.value + ")");
+    window.open(`https://mail.google.com/mail/?view=cm&to=${MY_EMAIL}&su=${su}&body=${body}`, "_blank");
+    note.textContent = "Gmail opened in a new tab. Press Send there.";
+    return;
+  }
+
+  note.textContent = "Sending...";
+  try {
+    const res = await fetch("https://api.web3forms.com/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({
+        access_key: WEB3FORMS_KEY,
+        subject: "Portfolio enquiry from " + f.name.value,
+        name: f.name.value, email: f.email.value, message: f.message.value
+      })
+    });
+    const data = await res.json();
+    if (data.success) { note.textContent = "Thank you! Your message was sent."; f.reset(); }
+    else throw new Error();
+  } catch {
+    note.textContent = "Could not send. Please email me at " + MY_EMAIL;
+  }
+});
+
+/* Email links: copy the address so it works even without an email app */
+document.querySelectorAll("a.mail").forEach(a => {
+  a.addEventListener("click", e => {
+    e.preventDefault();
+    const done = () => say("Email copied: " + MY_EMAIL);
+    if (navigator.clipboard) navigator.clipboard.writeText(MY_EMAIL).then(done, () => say(MY_EMAIL));
+    else say(MY_EMAIL);
+  });
 });
 
 /* ---------- Init ---------- */
