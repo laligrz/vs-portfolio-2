@@ -136,3 +136,6 @@ footer{text-align:center;padding:0 1rem 2.5rem;color:var(--muted);font-size:.9re
   .contact form{grid-template-columns:1fr}
   .lb-nav.prev{left:.4rem}.lb-nav.next{right:.4rem}
 }
+
+.toast{position:fixed;left:50%;bottom:1.5rem;transform:translate(-50%,20px);background:var(--navy);color:#fff;padding:.7rem 1.2rem;border-radius:99px;font-weight:700;opacity:0;pointer-events:none;transition:.3s;z-index:60}
+.toast.show{opacity:1;transform:translate(-50%,0)}
